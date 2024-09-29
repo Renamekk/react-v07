@@ -1,47 +1,27 @@
-import { useEffect, useState } from "react";
 import "./App.css";
 import SearchBox from "./SearchBox/SearchBox.jsx";
 import ContactList from "./ContactList/ContactList.jsx";
 import ContactForm from "./ContactForm/ContactForm.jsx";
-import phoneBookData from "../Data/PhoneBook.json";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { fetchContacts } from "../redux/contactsOps.js";
+import { getError, getIsLoading } from "../redux/selectors.js";
 
 export default function App() {
-  const [phoneBook, setPhone] = useState(() => {
-    const savedValues = window.localStorage.getItem("phoneBook");
-    if (savedValues !== null) {
-      return JSON.parse(savedValues);
-    }
-    return phoneBookData;
-  });
+  const dispatch = useDispatch();
+  const loading = useSelector(getIsLoading);
+  const error = useSelector(getError);
 
   useEffect(() => {
-    window.localStorage.setItem("phoneBook", JSON.stringify(phoneBook));
-  }, [phoneBook]);
-
-  function addPhone(values) {
-    setPhone(prevPhone => {
-      return [...prevPhone, values];
-    });
-  }
-
-  function deletePhone(phoneId) {
-    setPhone(prevPhone => {
-      return prevPhone.filter(phone => phone.id !== phoneId);
-    });
-  }
-
-  const [filterBook, setFilterBook] = useState("");
-
-  const visiblePhone = phoneBook.filter(phone =>
-    phone.name.toLowerCase().includes(filterBook.toLowerCase())
-  );
-
+    dispatch(fetchContacts());
+  }, [dispatch]);
   return (
     <>
-      <h1>Phonebook</h1>
-      <ContactForm onAdd={addPhone} />
-      <SearchBox value={filterBook} onFilter={setFilterBook} />
-      <ContactList phoneBook={visiblePhone} onDelete={deletePhone} />
+      <h1>Book</h1>
+      <ContactForm />
+      <SearchBox />
+      {loading && !error && <b>In progress...</b>}
+      <ContactList />
     </>
   );
 }
